@@ -11,3 +11,4 @@ it transmitted to the MCU "**as is**".
 
 ![hex2binx_screenshot](https://raw.githubusercontent.com/JohnMcLaren/HEX2BINX/master/img/hex2binx_screenshot.png)
 
+Read more about BINX there http://johnmclaren.github.io/HEX2BINX/
