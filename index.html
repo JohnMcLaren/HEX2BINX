@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>HEX2BINX</title>
+  <meta name="description" content="&lt;Intel HEX / ARM / C++ / Qt5 &gt;">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">HEX2BINX</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">&lt;Intel HEX / ARM / C++ / Qt5 &gt;</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/JohnMcLaren/HEX2BINX/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/JohnMcLaren/HEX2BINX/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/JohnMcLaren/HEX2BINX" class="code">View HEX2BINX on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>
+<a id="binx" class="anchor" href="#binx" aria-hidden="true"><span class="octicon octicon-link"></span></a>BINX</h1>
+
+<p><em>Универсальный формат файлов прошивок</em></p>
+
+<hr>
+
+<p>Формат прошивок <strong>BINX</strong> может быть интересен разработчикам устройств на микроконтроллерах, которые планируют в своих устройствах функцию обновления прошивки (<strong>Update Firmware</strong>), т.е. <strong>само-программирование</strong> микроконтроллера, в условиях:</p>
+
+<ul>
+<li>недостаточности промежуточной памяти используемой для приёма новой прошивки</li>
+<li>медленного либо неустойчивого канала связи с прошиваемым устройством</li>
+<li>не желанием разработчика занимать микроконтроллер разбором HEX формата</li>
+</ul>
+
+<p>По сути, <strong>BINX</strong> является бинарным представлением обычного HEX файла прошивки стандарта <strong>Intel HEX</strong>, он передаётся устройству “<strong>как есть</strong>”.</p>
+
+<p>Лично для меня необходимость в данном формате возникла когда потребовалось <strong>полное</strong> размещение новой прошивки в оперативной памяти микроконтроллера STM32F103 (SRAM = 20 kB), при само-программировании. HEX формат в силу своего текстового представления просто не смог бы разместиться физически. В общем случае объём <strong>BINX</strong> файла получается <strong>в три раза</strong> меньше <strong>HEX</strong> файла одной и той же прошивки.</p>
+
+<p>Итак, BINX файл в является массивом BINX блоков. BINX блок - это структура которая содержит данные для записи и необходимую техническую информацию для произведения записи данных. Эта структура состоит из 4 полей.</p>
+
+<ul>
+<li>
+<strong>Первое</strong> поле размером 4 байта содержит общий размер структуры/блока в байтах. </li>
+<li>
+<strong>Второе</strong> поле, также размером 4 байта, содержит адрес по которому будет произведена запись данных в ROM устройства. </li>
+<li>
+<strong>Третье</strong> поле переменной произвольной длинны и ограничено только допустимой длиной данных в блоке (4 294 967 285 байт) содержит непосредственно данные которые будут записаны по адресу указанному во втором поле структуры. </li>
+<li>
+<strong>Четвёртое</strong> поле, размером 2 байта, является контрольной суммой CRC16 предыдущих трёх полей структуры.</li>
+<li>
+<strong>Заканчивается</strong> BINX файл BINX блоком длиной 4 байта в котором присутствует только первое поле указывающее на нулевой размер блока.</li>
+</ul>
+
+<p>Все поля структуры имеют порядок байт соответствующий формату <strong>Intel</strong> - <em>Little-Endian</em>.</p>
+
+<h4>
+<a id="Структура-binx-файла" class="anchor" href="#%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0-binx-%D1%84%D0%B0%D0%B9%D0%BB%D0%B0" aria-hidden="true"><span class="octicon octicon-link"></span></a>Структура BINX файла</h4>
+
+<p><img src="https://raw.githubusercontent.com/JohnMcLaren/HEX2BINX/master/img/BINX_struct.png" alt="BINX_struct"></p>
+
+<h4>
+<a id="Признаки-binx-файла" class="anchor" href="#%D0%9F%D1%80%D0%B8%D0%B7%D0%BD%D0%B0%D0%BA%D0%B8-binx-%D1%84%D0%B0%D0%B9%D0%BB%D0%B0" aria-hidden="true"><span class="octicon octicon-link"></span></a>Признаки BINX файла.</h4>
+
+<p>Поскольку в заголовке BINX файла нет маркера явно указывающего на то что файл содержит структуры BINX формата, для определения используются следующие признаки (от простого к сложному):</p>
+
+<ol>
+<li>Файл заканчивается четырьмя байтами ‘00 00 00 00’</li>
+<li>Сумма указанных в заголовках BINX блоков длин блоков равна размеру файла</li>
+<li>Все контрольные суммы CRC16 BINX блоков корректны</li>
+</ol>
+
+<h4>
+<a id="Скриншот-конвертера-hex2binx" class="anchor" href="#%D0%A1%D0%BA%D1%80%D0%B8%D0%BD%D1%88%D0%BE%D1%82-%D0%BA%D0%BE%D0%BD%D0%B2%D0%B5%D1%80%D1%82%D0%B5%D1%80%D0%B0-hex2binx" aria-hidden="true"><span class="octicon octicon-link"></span></a>Скриншот конвертера HEX2BINX</h4>
+
+<p><img src="https://raw.githubusercontent.com/JohnMcLaren/HEX2BINX/master/img/hex2binx_screenshot.png" alt="hex2binx_screenshot"></p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/JohnMcLaren" class="avatar"><img src="https://avatars0.githubusercontent.com/u/10256841?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/JohnMcLaren">JohnMcLaren</a> maintains <a href="https://github.com/JohnMcLaren/HEX2BINX">HEX2BINX</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/JohnMcLaren/HEX2BINX/tarball/master" class="tar">tar</a><a href="https://github.com/JohnMcLaren/HEX2BINX/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
