@@ -8,5 +8,6 @@ Firmware **BINX** format may be of interest to developers of devices on microcon
 
 In fact, **BINX** is a binary representation of a conventional firmware HEX file standard of '**Intel HEX**', 
 it transmitted to the MCU "**as is**".
+
 ![hex2binx_screenshot](https://raw.githubusercontent.com/JohnMcLaren/HEX2BINX/master/img/hex2binx_screenshot.png)
 
